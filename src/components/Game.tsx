@@ -1,38 +1,91 @@
 import { useEffect, useRef } from "react";
 import kaboom from "kaboom";
-import { KaboomCtx } from "kaboom";
 
-// Game bileşeni
 const Game = () => {
-  // Canvas elementine referans oluşturuyoruz.
-  // Bu, React'in DOM'a doğrudan erişmesini sağlar.
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isKaboomInitialized = useRef(false);
 
-  // useEffect, bileşen ekrana ilk kez çizildiğinde çalışır.
-  // Oyunumuzu burada başlatacağız.
   useEffect(() => {
-    // Eğer canvasRef mevcutsa, Kaboom'u başlat.
-    if (canvasRef.current) {
-      const k: KaboomCtx = kaboom({
-        canvas: canvasRef.current,
-        width: 640,
-        height: 480,
-        scale: 1,
-        background: [0, 0, 0], // Siyah arka plan
+    if (!canvasRef.current || isKaboomInitialized.current) {
+      return;
+    }
+
+    const k = kaboom({
+      canvas: canvasRef.current,
+      width: 640,
+      height: 480,
+      scale: 1,
+      background: [0, 0, 0],
+    });
+
+    k.loadSprite("mario", "/sprites/mario.png");
+    k.loadSprite("ground", "/sprites/ground.png");
+    k.loadSprite("block", "/sprites/block.png");
+
+    k.scene("main", () => {
+      const levelMap = [
+        "                    ",
+        "                    ",
+        "                    ",
+        "     %   =*=%=      ",
+        "                    ",
+        "                    ",
+        "   =================",
+      ];
+
+      const levelConf = {
+        tileWidth: 20,
+        tileHeight: 20,
+        tiles: {
+          "=": () => [k.sprite("ground"), k.area(), k.solid()],
+          "%": () => [k.sprite("block"), k.area(), k.solid()],
+        },
+      };
+
+      k.addLevel(levelMap, levelConf);
+
+      const player = k.add([
+        k.sprite("mario"),
+        k.pos(30, 0),
+        k.area(),
+        k.body(),
+      ]);
+
+      // ======================================================
+      // YENİ EKLENEN KOD BAŞLANGICI
+      // ======================================================
+
+      const MOVE_SPEED = 120;
+      const JUMP_FORCE = 360;
+
+      // Sağa hareket (sağ ok tuşu basılı tutulduğunda)
+      k.onKeyDown("right", () => {
+        player.move(MOVE_SPEED, 0);
       });
 
-      // --- OYUN MANTIĞI BURAYA GELECEK ---
-      // Şimdilik sadece bir test metni ekleyelim.
-      k.add([
-        k.text("Oyun Başladı!"),
-        k.pos(k.width() / 2, k.height() / 2),
-        k.anchor("center"),
-      ]);
-      // ------------------------------------
-    }
-  }, []); // Boş dependency array, bu etkinin sadece bir kez çalışmasını sağlar.
+      // Sola hareket (sol ok tuşu basılı tutulduğunda)
+      k.onKeyDown("left", () => {
+        player.move(-MOVE_SPEED, 0);
+      });
 
-  // Ekrana çizilecek olan canvas elementini döndürüyoruz.
+      // Zıplama (boşluk tuşuna basıldığında)
+      k.onKeyPress("space", () => {
+        // Sadece oyuncu zemindeyse zıpla
+        if (player.isGrounded()) {
+          player.jump(JUMP_FORCE);
+        }
+      });
+
+      // ======================================================
+      // YENİ EKLENEN KOD SONU
+      // ======================================================
+    });
+
+    k.go("main");
+
+    isKaboomInitialized.current = true;
+  }, []);
+
   return <canvas ref={canvasRef}></canvas>;
 };
 
