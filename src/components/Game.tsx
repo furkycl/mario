@@ -3,10 +3,9 @@ import kaboom from "kaboom";
 
 const Game = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isKaboomInitialized = useRef(false);
 
   useEffect(() => {
-    if (!canvasRef.current || isKaboomInitialized.current) {
+    if (!canvasRef.current) {
       return;
     }
 
@@ -15,30 +14,35 @@ const Game = () => {
       width: 640,
       height: 480,
       scale: 1,
-      background: [0, 0, 0],
+      background: [51, 153, 255], // Gökyüzü mavisi bir arka plan
     });
 
+    // Varlıkları yükle
     k.loadSprite("mario", "/sprites/mario.png");
     k.loadSprite("ground", "/sprites/ground.png");
     k.loadSprite("block", "/sprites/block.png");
 
+    // Ana oyun sahnesi
     k.scene("main", () => {
+      // Daha uzun ve oynaması keyifli bir harita
       const levelMap = [
-        "                    ",
-        "                    ",
-        "                    ",
-        "     %   =*=%=      ",
-        "                    ",
-        "                    ",
-        "   =================",
+        "                                      ",
+        "                                      ",
+        "                                      ",
+        "                                      ",
+        "                                      ",
+        "     %   =*=%                         ",
+        "                                      ",
+        "                           ====       ",
+        "   ========   ====   ======           ",
       ];
 
       const levelConf = {
-        tileWidth: 20,
-        tileHeight: 20,
+        tileWidth: 16,
+        tileHeight: 16,
         tiles: {
-          "=": () => [k.sprite("ground"), k.area(), k.solid()],
-          "%": () => [k.sprite("block"), k.area(), k.solid()],
+          "=": () => [k.sprite("ground"), k.area(), k.body({ isStatic: true })],
+          "%": () => [k.sprite("block"), k.area(), k.body({ isStatic: true })],
         },
       };
 
@@ -46,44 +50,35 @@ const Game = () => {
 
       const player = k.add([
         k.sprite("mario"),
-        k.pos(30, 0),
+        k.pos(30, 0), // Başlangıç pozisyonu
         k.area(),
         k.body(),
       ]);
 
-      // ======================================================
-      // YENİ EKLENEN KOD BAŞLANGICI
-      // ======================================================
-
       const MOVE_SPEED = 120;
       const JUMP_FORCE = 360;
 
-      // Sağa hareket (sağ ok tuşu basılı tutulduğunda)
+      // Oyuncu her güncellendiğinde (her karede) kamerayı takip et
+      player.onUpdate(() => {
+        k.camPos(player.pos);
+      });
+
       k.onKeyDown("right", () => {
         player.move(MOVE_SPEED, 0);
       });
 
-      // Sola hareket (sol ok tuşu basılı tutulduğunda)
       k.onKeyDown("left", () => {
         player.move(-MOVE_SPEED, 0);
       });
 
-      // Zıplama (boşluk tuşuna basıldığında)
       k.onKeyPress("space", () => {
-        // Sadece oyuncu zemindeyse zıpla
         if (player.isGrounded()) {
           player.jump(JUMP_FORCE);
         }
       });
-
-      // ======================================================
-      // YENİ EKLENEN KOD SONU
-      // ======================================================
     });
 
     k.go("main");
-
-    isKaboomInitialized.current = true;
   }, []);
 
   return <canvas ref={canvasRef}></canvas>;
