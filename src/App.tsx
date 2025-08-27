@@ -1,5 +1,5 @@
 import Game from "./components/Game";
-import "./App.css"; // Yeni CSS dosyamızı import ediyoruz
+import "./App.css"; // Bu satırın var olduğundan emin olun
 
 function App() {
   return (

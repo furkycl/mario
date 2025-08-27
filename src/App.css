@@ -4,12 +4,11 @@
   align-items: center;
   width: 100vw;
   height: 100vh;
-  background-color: #1a1a1a; /* Koyu bir arka plan */
+  background-color: #000; /* Dış çerçeve siyah olsun */
 }
 
-/* Bu en önemli kısım */
 canvas {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* En-boy oranını koru */
+  max-width: 90vw; /* Genişliğin en fazla %90'ını kaplasın */
+  max-height: 90vh; /* Yüksekliğin en fazla %90'ını kaplasın */
+  object-fit: contain;
 }

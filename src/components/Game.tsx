@@ -10,58 +10,40 @@ const Game = () => {
     }
 
     const k = kaboom({
+      width: 1280,
+      height: 1024,
       canvas: canvasRef.current,
-      width: 640,
-      height: 480,
-      scale: 1,
-      background: [51, 153, 255], // Gökyüzü mavisi bir arka plan
+      background: [200, 200, 200],
     });
 
-    // Varlıkları yükle
-    k.loadSprite("mario", "/sprites/mario.png");
-    k.loadSprite("ground", "/sprites/ground.png");
-    k.loadSprite("block", "/sprites/block.png");
-
-    // Ana oyun sahnesi
     k.scene("main", () => {
-      // Daha uzun ve oynaması keyifli bir harita
-      const levelMap = [
-        "                                      ",
-        "                                      ",
-        "                                      ",
-        "                                      ",
-        "                                      ",
-        "     %   =*=%                         ",
-        "                                      ",
-        "                           ====       ",
-        "   ========   ====   ======           ",
-      ];
+      k.setGravity(2400);
 
-      const levelConf = {
-        tileWidth: 16,
-        tileHeight: 16,
-        tiles: {
-          "=": () => [k.sprite("ground"), k.area(), k.body({ isStatic: true })],
-          "%": () => [k.sprite("block"), k.area(), k.body({ isStatic: true })],
-        },
-      };
+      const GROUND_HEIGHT = 20;
 
-      k.addLevel(levelMap, levelConf);
-
-      const player = k.add([
-        k.sprite("mario"),
-        k.pos(30, 0), // Başlangıç pozisyonu
+      k.add([
+        k.rect(k.width(), GROUND_HEIGHT),
+        k.pos(0, k.height() - GROUND_HEIGHT),
+        k.body({ isStatic: true }),
         k.area(),
-        k.body(),
+        "ground",
       ]);
 
-      const MOVE_SPEED = 120;
-      const JUMP_FORCE = 360;
+      const player = k.add([
+        k.rect(16, 16),
+        k.pos(40, k.height() - GROUND_HEIGHT),
+        k.anchor("botleft"),
+        k.color(0, 0, 0),
+        k.body(),
+        k.area(),
+      ]);
 
-      // Oyuncu her güncellendiğinde (her karede) kamerayı takip et
       player.onUpdate(() => {
         k.camPos(player.pos);
       });
+
+      const MOVE_SPEED = 120;
+      const JUMP_FORCE = 360;
 
       k.onKeyDown("right", () => {
         player.move(MOVE_SPEED, 0);
