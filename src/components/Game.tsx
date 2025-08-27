@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-// We go back to the simplest import that we know works.
 import kaboom from "kaboom";
 
 const Game = () => {
@@ -17,12 +16,7 @@ const Game = () => {
       background: [20, 20, 30],
     });
 
-    // ======================================================
-    // THE FINAL FIX IS HERE
-    // ======================================================
-    // 1. We create a type alias by looking at the return type of the k.vec2() function.
     type Vec2Type = ReturnType<typeof k.vec2>;
-    // ======================================================
 
     k.scene("main", () => {
       k.setGravity(1600);
@@ -47,21 +41,18 @@ const Game = () => {
         k.area(),
       ]);
 
-      // Walls
       k.add([
-        k.rect(10, k.height() * 2),
-        k.pos(0, -k.height()),
+        k.rect(10, k.height() * 20),
+        k.pos(0, -k.height() * 19),
         k.area(),
         k.body({ isStatic: true }),
       ]);
       k.add([
-        k.rect(10, k.height() * 2),
-        k.pos(k.width() - 10, -k.height()),
+        k.rect(10, k.height() * 20),
+        k.pos(k.width() - 10, -k.height() * 19),
         k.area(),
         k.body({ isStatic: true }),
       ]);
-
-      // Initial platform
       k.add([
         k.rect(k.width(), 48),
         k.pos(k.width() / 2, k.height() - 24),
@@ -70,7 +61,6 @@ const Game = () => {
         k.body({ isStatic: true }),
       ]);
 
-      // 2. We use our new, correctly inferred type here.
       function spawnPlatform(p: Vec2Type) {
         k.add([
           k.rect(PLATFORM_WIDTH, 24),
@@ -82,7 +72,7 @@ const Game = () => {
         ]);
       }
 
-      for (let i = 1; i < 10; i++) {
+      for (let i = 1; i < 200; i++) {
         const maxJumpDistance = 300;
         const newX = k.rand(
           Math.max(PLATFORM_WIDTH / 2, lastPlatformX - maxJumpDistance),
@@ -107,6 +97,7 @@ const Game = () => {
 
       player.onUpdate(() => {
         k.camPos(k.width() / 2, player.pos.y);
+
         const highestPoint = -player.pos.y;
         if (highestPoint > score) {
           score = Math.floor(highestPoint);
@@ -118,14 +109,19 @@ const Game = () => {
       });
     });
 
+    // ======================================================
+    // THE FIX IS HERE
+    // ======================================================
     k.scene("lose", (score) => {
+      // The parameter "score" is now used in the text below
       k.add([
         k.text("Game Over", { size: 80 }),
         k.pos(k.width() / 2, k.height() / 2 - 80),
         k.anchor("center"),
       ]);
       k.add([
-        k.text("Score: " + score, { size: 60 }),
+        // We use a template literal to display the final score
+        k.text(`Score: ${score}`, { size: 60 }),
         k.pos(k.width() / 2, k.height() / 2),
         k.anchor("center"),
       ]);
@@ -138,6 +134,7 @@ const Game = () => {
         k.go("main");
       });
     });
+    // ======================================================
 
     k.go("main");
   }, []);
