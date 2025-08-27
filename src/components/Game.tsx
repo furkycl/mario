@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+// We go back to the simplest import that we know works.
 import kaboom from "kaboom";
 
 const Game = () => {
@@ -16,6 +17,13 @@ const Game = () => {
       background: [20, 20, 30],
     });
 
+    // ======================================================
+    // THE FINAL FIX IS HERE
+    // ======================================================
+    // 1. We create a type alias by looking at the return type of the k.vec2() function.
+    type Vec2Type = ReturnType<typeof k.vec2>;
+    // ======================================================
+
     k.scene("main", () => {
       k.setGravity(1600);
 
@@ -23,14 +31,13 @@ const Game = () => {
       const MOVE_SPEED = 240;
       const PLATFORM_WIDTH = 120;
       let score = 0;
-      let lastPlatformX = k.width() / 2; // Keep track of the last platform's X position
+      let lastPlatformX = k.width() / 2;
 
       const scoreLabel = k.add([
         k.text("Score: 0", { size: 48 }),
         k.pos(24, 24),
         k.fixed(),
       ]);
-
       const player = k.add([
         k.rect(32, 32),
         k.pos(k.width() / 2, k.height() - 100),
@@ -40,24 +47,19 @@ const Game = () => {
         k.area(),
       ]);
 
-      // ======================================================
-      // NEW: Add Walls
-      // ======================================================
-      // Left Wall
-      k.add([
-        k.rect(10, k.height() * 2), // A tall, thin rectangle
-        k.pos(0, -k.height()), // Positioned on the left edge
-        k.area(),
-        k.body({ isStatic: true }),
-      ]);
-      // Right Wall
+      // Walls
       k.add([
         k.rect(10, k.height() * 2),
-        k.pos(k.width() - 10, -k.height()), // Positioned on the right edge
+        k.pos(0, -k.height()),
         k.area(),
         k.body({ isStatic: true }),
       ]);
-      // ======================================================
+      k.add([
+        k.rect(10, k.height() * 2),
+        k.pos(k.width() - 10, -k.height()),
+        k.area(),
+        k.body({ isStatic: true }),
+      ]);
 
       // Initial platform
       k.add([
@@ -68,7 +70,8 @@ const Game = () => {
         k.body({ isStatic: true }),
       ]);
 
-      function spawnPlatform(p) {
+      // 2. We use our new, correctly inferred type here.
+      function spawnPlatform(p: Vec2Type) {
         k.add([
           k.rect(PLATFORM_WIDTH, 24),
           k.pos(p),
@@ -79,14 +82,8 @@ const Game = () => {
         ]);
       }
 
-      // Spawn initial platforms with smarter logic
       for (let i = 1; i < 10; i++) {
-        // ======================================================
-        // NEW: Smarter Platform Generation Logic
-        // ======================================================
-        const maxJumpDistance = 300; // Max horizontal distance a player can likely jump
-
-        // Calculate a new X position that is reachable from the previous platform
+        const maxJumpDistance = 300;
         const newX = k.rand(
           Math.max(PLATFORM_WIDTH / 2, lastPlatformX - maxJumpDistance),
           Math.min(
@@ -94,33 +91,27 @@ const Game = () => {
             lastPlatformX + maxJumpDistance
           )
         );
-
         spawnPlatform(k.vec2(newX, k.height() - i * 150));
-        lastPlatformX = newX; // Update the last platform's position
-        // ======================================================
+        lastPlatformX = newX;
       }
 
       k.onKeyDown("left", () => {
         player.move(-MOVE_SPEED, 0);
       });
-
       k.onKeyDown("right", () => {
         player.move(MOVE_SPEED, 0);
       });
-
       player.onGround(() => {
         player.jump(JUMP_FORCE);
       });
 
       player.onUpdate(() => {
         k.camPos(k.width() / 2, player.pos.y);
-
         const highestPoint = -player.pos.y;
         if (highestPoint > score) {
           score = Math.floor(highestPoint);
           scoreLabel.text = "Score: " + score;
         }
-
         if (player.pos.y > k.camPos().y + k.height() / 2) {
           k.go("lose", score);
         }
